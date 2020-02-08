@@ -16,6 +16,17 @@ type AttestationStatement struct {
 	}
 }
 
+type ParsedAttestationObject struct {
+	Fmt      string        `json:"fmt"`
+	AttStmt  ParsedAttStmt `json:"attStmt"`
+	AuthData []byte        `json:"authData"`
+}
+
+type ParsedAttStmt struct {
+	Sig string `json:"sig"`
+	X5c string `json:"x5c"`
+}
+
 func main() {
 	flag.Parse()
 	args := flag.Args()
