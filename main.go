@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
+
+	"github.com/fxamacker/cbor"
 )
 
 type AttestationStatement struct {
@@ -17,14 +21,30 @@ type AttestationStatement struct {
 }
 
 type ParsedAttestationObject struct {
-	Fmt      string        `json:"fmt"`
-	AttStmt  ParsedAttStmt `json:"attStmt"`
-	AuthData []byte        `json:"authData"`
+	Fmt      string        `cbor:"fmt"`
+	AttStmt  ParsedAttStmt `cbor:"attStmt"`
+	AuthData []byte        `cbor:"authData"`
 }
 
 type ParsedAttStmt struct {
 	Sig string `json:"sig"`
 	X5c string `json:"x5c"`
+}
+
+func (a AttestationStatement) ParseAttestationObject() {
+	atstObjBuf, err := base64.StdEncoding.DecodeString(a.Response.AttestationObject)
+	if err != nil {
+		fmt.Println("Failed base64 decode:", err)
+		return
+	}
+	dec := cbor.NewDecoder(bytes.NewReader(atstObjBuf))
+
+	var parsedAttestationObj ParsedAttestationObject
+	if err := dec.Decode(&parsedAttestationObj); err != nil {
+		fmt.Printf("error: %+v\n", err)
+		return
+	}
+	fmt.Printf("%+v\n", parsedAttestationObj)
 }
 
 func main() {
@@ -43,5 +63,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf("%+v", attStmt)
+	fmt.Printf("%+v\n", attStmt)
+
+	attStmt.ParseAttestationObject()
 }
