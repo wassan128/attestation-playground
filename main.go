@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"strings"
 
 	"github.com/fxamacker/cbor"
 )
@@ -32,7 +33,10 @@ type ParsedAttStmt struct {
 }
 
 func (a AttestationStatement) ParseAttestationObject() {
-	atstObjBuf, err := base64.StdEncoding.DecodeString(a.Response.AttestationObject)
+	atstObjStr := strings.ReplaceAll(a.Response.AttestationObject, "-", "+")
+	atstObjStr = strings.ReplaceAll(atstObjStr, "_", "/") + "=="
+
+	atstObjBuf, err := base64.StdEncoding.DecodeString(atstObjStr)
 	if err != nil {
 		fmt.Println("Failed base64 decode:", err)
 		return
